@@ -5,8 +5,11 @@
 #ifndef SERVER_PTHREADPOOL_H
 #define SERVER_PTHREADPOOL_H
 
-# include "config.h"
-# include "Task.h"
+
+#include "config.h"
+#include "Task.h"
+#include "MemoryPool.h"
+
 
 using namespace std;
 const int PTHREAD_POOL_SIZE = 5;
@@ -19,6 +22,7 @@ private:
     pthread_cond_t pthreadCond;
     list<pthread_t> pthreadList;
     queue<Task *> taskQueue;
+    MemoryPool *memoryPool;
     int pthreadNum;
     int running;
 
@@ -48,6 +52,10 @@ public:
     int runPthread();
 
     int closePthread();
+
+    void freeTask(Task *task);
+
+    void setMemoryPool(MemoryPool *memoryPool);
 
 };
 

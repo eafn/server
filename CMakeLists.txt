@@ -3,7 +3,7 @@ project(server)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(server main.cpp config.h PthreadPool.cpp PthreadPool.h Task.cpp Task.h Listener.cpp Listener.h)
+add_executable(server config.h PthreadPool.cpp PthreadPool.h Task.cpp Task.h Listener.cpp Listener.h MemoryPool.cpp MemoryPool.h  Daemon.cpp Daemon.h main.cpp)
 
 find_package(Threads REQUIRED)
 

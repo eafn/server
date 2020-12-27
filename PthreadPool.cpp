@@ -4,10 +4,13 @@
 
 #include "PthreadPool.h"
 
+#define YIFAN_PTHREADPOOL_DEBUG
+
 PthreadPool::PthreadPool(size_t poolSize) {
     pthreadNum = poolSize;
     pthreadMutex = PTHREAD_MUTEX_INITIALIZER;
     pthreadCond = PTHREAD_COND_INITIALIZER;
+    running = 0;
 }
 
 void PthreadPool::printError(const char *msg, int errorNum) {
@@ -33,7 +36,9 @@ int PthreadPool::waitCond() {
 }
 
 
-void PthreadPool::setPthreadNum(int pthreadNum) {
+/*
+ * //DEBUG时使用
+ * void PthreadPool::setPthreadNum(int pthreadNum) {
     if (running) fprintf(stderr, "PthreadPoll is running");
     else if (pthreadNum <= 0) fprintf(stderr, "PthreadNum must be more than 0");
     else this->pthreadNum = pthreadNum;
@@ -46,6 +51,7 @@ int PthreadPool::getPthreadNum() {
 int PthreadPool::getTaskNum() {
     return taskQueue.size();
 }
+ */
 
 void PthreadPool::addTask(Task *task) {
     lockMutex();
@@ -56,6 +62,7 @@ void PthreadPool::addTask(Task *task) {
 
 int PthreadPool::runPthread() {
     if (running) return -1;
+    printf("running = 0\n");
     int i, err;
     pthread_t tid;
     running = 1;
@@ -93,10 +100,12 @@ int PthreadPool::closePthread() {
 
 
 void *PthreadPool::pthreadPerform(void *arg) {
-    PthreadPool *pool = (PthreadPool *) arg;
+    PthreadPool *pool = (PthreadPool *) arg;    //静态函数通过参数获取线程池实例
     pthread_t tid = pthread_self();
     Task *task = NULL;
+#ifdef YIFAN_PTHREADPOOL_DEBUG
     printf("pthread[tid==%ld] is running\n", tid);
+#endif
     while (1) {
         pool->lockMutex();
         while (pool->running && pool->taskQueue.empty()) pool->waitCond();
@@ -112,11 +121,28 @@ void *PthreadPool::pthreadPerform(void *arg) {
         task = pool->taskQueue.front();
         pool->taskQueue.pop();
         pool->unlockMutex();
-        if (task) task->run();
+        if (task) {
+            task->run();
+            pool->freeTask(task);
+#ifdef YIFAN_PTHREADPOOL_DEBUG
+            printf("pthread[tid==%ld] is performing\n", tid);
+#endif
+        }
     }
     return (void *) 0;
 }
 
+void PthreadPool::setMemoryPool(MemoryPool *memoryPool) {
+    this->memoryPool = memoryPool;
+}
+
+void PthreadPool::freeTask(Task *task) {
+#ifdef MEMORY_POOL_MODE
+    memoryPool->freeByMutex(task);
+#else
+    delete task;
+#endif
+}
 
 PthreadPool::~PthreadPool() {
     closePthread();

@@ -28,6 +28,7 @@ private:
     char method[MAX_METHOD_SIZE];
     char filename[MAX_FILENAME_SIZE];
     char filepath[MAX_FILEPATH_SIZE];
+
 public:
 
     HttpResponse(int connSock);
@@ -43,17 +44,8 @@ public:
     int parseHttp(char *buf, int size);
 
     virtual void execute();
+
 };
 
-class TaskA : public Task {
-public:
-    virtual void execute();
-};
-
-
-class TaskB : public Task {
-public:
-    virtual void execute();
-};
 
 #endif //SERVER_TASK_H

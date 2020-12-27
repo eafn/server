@@ -10,7 +10,6 @@
 class Listener {
 private:
     int servSock;
-    int port;
     struct sockaddr_in servAddr;
 
 public:

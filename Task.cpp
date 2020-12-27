@@ -10,13 +10,14 @@ void Task::run() {
 
 HttpResponse::HttpResponse(int connSock) {
     this->connSock = connSock;
-    const char *pathHeader = "/home/gyf";
+    const char *pathHeader = YIFAN_PATH_HEADER;
     strcpy(filepath, pathHeader);
-
 }
 
 void HttpResponse::printError(const char *msg) {
-    fprintf(stderr, "HttpResponse:%s error", msg);
+//    fprintf(stderr, "HttpResponse::%s error", msg);
+    syslog(LOG_ERR,"HttpResponse:: %s error,%s\n",msg,strerror(errno));
+    syslog(LOG_INFO,"server terminate");
 }
 
 int HttpResponse::parseHttp(char *buf, int size) {
@@ -39,12 +40,12 @@ void HttpResponse::execute() {
     int size;
     char buf[MAX_BUFFER_SIZE];
     if (connSock < 0) {
-        printError("connSock");
+        printError("execute:connSock");
         return;
     }
     size = read(connSock, buf, MAX_BUFFER_SIZE - 1);
     if (size < 0) {
-        printError("read");
+        printError("execute:read");
         return;
     }
     parseHttp(buf, size);
@@ -101,12 +102,3 @@ void HttpResponse::responseError(int status) {
     write(connSock, buf, strlen(buf));
 }
 
-void TaskA::execute() {
-    printf("the TaskA is execute\n");
-    sleep(1);
-}
-
-void TaskB::execute() {
-    printf("the TaskB is execute\n");
-    sleep(1);
-}
