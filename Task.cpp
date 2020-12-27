@@ -69,7 +69,7 @@ void HttpResponse::responseGet() {
     }
     if (0 == strcmp(filename, "/")) strcat(filepath, "/index.html");
     else strcat(filepath, filename);
-    stat(filepath, &fstat);
+    ret = stat(filepath, &fstat);
     //文件打开失败或该文件是目录
     if (ret < 0 || S_ISDIR(fstat.st_mode)) responseError(404);
         //发送响应头静态文件
