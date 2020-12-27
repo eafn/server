@@ -42,6 +42,3 @@
 
 
 
-3. 主线程的工作流程图：
-
-<img src="C:\Users\高逸凡\AppData\Roaming\Typora\typora-user-images\image-20201227151030223.png" alt="image-20201227151030223" style="zoom: 50%;" />
