@@ -4,6 +4,9 @@
 
 #include "Listener.h"
 
+/*!
+ * 构造器
+ */
 Listener::  Listener() {
     bzero(&servAddr,sizeof(servAddr));
     servAddr.sin_family = AF_INET;
@@ -12,15 +15,27 @@ Listener::  Listener() {
     servSock = -1;
 }
 
+/*!
+ * 打印错误信息
+ * @param msg
+ */
 void Listener::printError(const char *msg) {
       syslog(LOG_ERR,"Listener:: %s error,%s\n",msg,strerror(errno));
       syslog(LOG_INFO,"server terminate");
 }
 
+/*!
+ * 获取监听套接字
+ * @return  监听套接字
+ */
 int Listener::getServSock() {
     return servSock;
 }
 
+/*!
+ * 启动监听器
+ * @return 返回监听套接字
+ */
 int Listener::run() {
     int on = 1;
     if ((servSock = socket(servAddr.sin_family, SOCK_STREAM, 0)) < 0) {

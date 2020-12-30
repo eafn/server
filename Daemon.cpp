@@ -4,6 +4,10 @@
 
 #include "Daemon.h"
 
+/*!
+ * 服务器后台化
+ * @return 成功 0
+ */
 int Daemon::daemonize() {
     pid_t pid = fork();
 

@@ -6,6 +6,10 @@
 
 #define YIFAN_PTHREADPOOL_DEBUG
 
+/*!
+ * 线程池构造器
+ * @param poolSize  线程池大小
+ */
 PthreadPool::PthreadPool(size_t poolSize) {
     pthreadNum = poolSize;
     pthreadMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -13,28 +17,41 @@ PthreadPool::PthreadPool(size_t poolSize) {
     running = 0;
 }
 
+/*!
+ * 输出错误
+ * @param msg
+ * @param errorNum
+ */
 void PthreadPool::printError(const char *msg, int errorNum) {
     fprintf(stderr, "%s:%s", msg, strerror(errorNum));
 }
 
+/*!
+ * 加锁
+ */
 int PthreadPool::lockMutex() {
     int err = pthread_mutex_lock(&pthreadMutex);
     if (err) printError("PthreadPool::lockMutex", err);
     return err;
 }
 
+/*!
+ * 解锁
+ */
 int PthreadPool::unlockMutex() {
     int err = pthread_mutex_unlock(&pthreadMutex);
     if (err) printError("PthreadPool::unlockMutex", err);
     return err;
 }
 
+/*!
+ * 等待条件变量
+ */
 int PthreadPool::waitCond() {
     int err = pthread_cond_wait(&pthreadCond, &pthreadMutex);
     if (err) printError("PthreadPool::waitCond", err);
     return err;
 }
-
 
 /*
  * //DEBUG时使用
@@ -53,6 +70,10 @@ int PthreadPool::getTaskNum() {
 }
  */
 
+/*!
+ * 添加任务到队列
+ * @param task
+ */
 void PthreadPool::addTask(Task *task) {
     lockMutex();
     taskQueue.push(task);
@@ -60,9 +81,12 @@ void PthreadPool::addTask(Task *task) {
     pthread_cond_signal(&pthreadCond);
 }
 
+/*!
+ * 创建线程
+ * @return 成功 0
+ */
 int PthreadPool::runPthread() {
     if (running) return -1;
-    printf("running = 0\n");
     int i, err;
     pthread_t tid;
     running = 1;
@@ -81,7 +105,10 @@ int PthreadPool::runPthread() {
     if (-1 == i) running = 0;
     return err;
 }
-
+/*!
+ * 关闭线程
+ * @return 成功 0
+ */
 int PthreadPool::closePthread() {
     if (running) running = 0;
     else return -1;
@@ -98,7 +125,11 @@ int PthreadPool::closePthread() {
     return err;
 }
 
-
+/*!
+ * 启动线程
+ * @param arg
+ * @return
+ */
 void *PthreadPool::pthreadPerform(void *arg) {
     PthreadPool *pool = (PthreadPool *) arg;    //静态函数通过参数获取线程池实例
     pthread_t tid = pthread_self();
@@ -132,10 +163,18 @@ void *PthreadPool::pthreadPerform(void *arg) {
     return (void *) 0;
 }
 
+/*!
+ * 设置内存池
+ * @param memoryPool 内存池实例的指针
+ */
 void PthreadPool::setMemoryPool(MemoryPool *memoryPool) {
     this->memoryPool = memoryPool;
 }
 
+/*!
+ * 释放任务实例的所占内存空间
+ * @param task 任务实例的指针
+ */
 void PthreadPool::freeTask(Task *task) {
 #ifdef MEMORY_POOL_MODE
     memoryPool->freeByMutex(task);
@@ -144,6 +183,9 @@ void PthreadPool::freeTask(Task *task) {
 #endif
 }
 
+/*!
+ * 析构函数
+ */
 PthreadPool::~PthreadPool() {
     closePthread();
 }

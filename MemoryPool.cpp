@@ -5,6 +5,11 @@
 #include "MemoryPool.h"
 //#define YIFAN_MEMORYPOOL_DEBUG
 
+/*!
+ * 构造器
+ * @param unitNum 最小分配单元数量
+ * @param unitSize 最小分配字大小
+ */
 MemoryBlock::MemoryBlock(ushort unitNum, ushort unitSize)
         : totalSize(unitNum * unitSize), freeNum(unitNum - 1), firstFreeUnit(1), nextMemoryBlock(NULL) {
     char *pData = Data;
@@ -15,15 +20,31 @@ MemoryBlock::MemoryBlock(ushort unitNum, ushort unitSize)
     }
 }
 
+/*!
+ * 内存块重载new
+ * @param unitNum
+ * @param unitSize
+ * @return
+ */
 void *MemoryBlock::operator new(size_t, ushort unitNum, ushort unitSize) {
     return ::operator new(sizeof(MemoryBlock) + unitNum * unitSize);
 }
 
-
+/*!
+ * 内存块重载delete
+ * @param block
+ */
 void MemoryBlock::operator delete(void *block, size_t) {
     ::operator delete(block);
 }
 
+/*!
+ * 构造器
+ * @param unitSize 最小分配单元大小
+ * @param initSize 第一个内存块单元数
+ * @param growSize 增长内存块单元数
+ * @param alignSize 字节对齐大小
+ */
 MemoryPool::MemoryPool(ushort unitSize, ushort initSize, ushort growSize, ushort alignSize)
         : nUnitSize(unitSize), nInitSize(initSize), nGrowSize(growSize), alignSize(alignSize), blockList(NULL) {
     pthreadMutex = PTHREAD_MUTEX_INITIALIZER;//初始化锁
@@ -35,6 +56,9 @@ MemoryPool::MemoryPool(ushort unitSize, ushort initSize, ushort growSize, ushort
     blockList->freeNum = nInitSize;
 }
 
+/*!
+ * 析构函数
+ */
 MemoryPool::~MemoryPool() {
     while (NULL != blockList) {
         MemoryBlock *pMemoryBlock = blockList;
@@ -43,6 +67,10 @@ MemoryPool::~MemoryPool() {
     }
 }
 
+/*!
+ * 分配内存单元
+ * @return 内存单元地址
+ */
 void *MemoryPool::alloc() {
     MemoryBlock *block;
 
@@ -76,6 +104,10 @@ void *MemoryPool::alloc() {
     }
 }
 
+/*!
+ * 分配内存单元(线程安全)
+ * @return 内存单元地址
+ */
 void *MemoryPool::allocByMutex() {
     void *result;
     pthread_mutex_lock(&pthreadMutex);
@@ -96,6 +128,10 @@ void MemoryPool::freeByMutex(void *curUnit) {
     pthread_mutex_unlock(&pthreadMutex);
 }
 
+/*!
+ * 释放内存单元
+ * @param curUnit  单元地址
+ */
 void MemoryPool::free(void *curUnit) {
     //block为当前块，preBlock为前一个块
     MemoryBlock *block = blockList;
@@ -131,6 +167,9 @@ void MemoryPool::free(void *curUnit) {
     }
 }
 
+/*!
+ * Debug,打印内存状态
+ */
 void MemoryPool::printMemoryPoolStatus() {
     int freeUnitNum = 0;
     int blockNum = 0;
